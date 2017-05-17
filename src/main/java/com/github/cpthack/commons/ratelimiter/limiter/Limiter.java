@@ -28,10 +28,55 @@ package com.github.cpthack.commons.ratelimiter.limiter;
  */
 public interface Limiter {
 	
+	/**
+	 * 
+	 * <b>execute</b> <br/>
+	 * <br/>
+	 * 
+	 * 执行限流控制，如果通过则返回true，如果不通过则返回false。<br/>
+	 * 
+	 * @author cpthack cpt@jianzhimao.com
+	 * @param routerName
+	 *            路由名称
+	 * @return boolean
+	 *
+	 */
 	boolean execute(String routerName);
 	
+	/**
+	 * 
+	 * <b>execute</b> <br/>
+	 * <br/>
+	 * 
+	 * 执行限流控制，如果通过则返回true，如果不通过则返回false。 如果限流规则不存在，则往规则集合中添加当前限流规则 <br/>
+	 * 
+	 * @author cpthack cpt@jianzhimao.com
+	 * @param routerName
+	 *            路由名称
+	 * @param limitCount
+	 *            限流数量
+	 * @return boolean
+	 *
+	 */
 	boolean execute(String routerName, int limitCount);
 	
+	/**
+	 * 
+	 * <b>execute</b> <br/>
+	 * <br/>
+	 * 
+	 * 执行限流控制，如果通过则返回true，如果不通过则返回false。 如果限流规则不存在，则往规则集合中添加当前限流规则<br/>
+	 * 
+	 * @author cpthack cpt@jianzhimao.com
+	 * @param routerName
+	 *            路由名称
+	 * @param limitCount
+	 *            限流数量
+	 * @param time
+	 *            限流时间
+	 * @return boolean
+	 *
+	 */
 	boolean execute(String routerName, int limitCount, long time);
 	
 }
