@@ -18,6 +18,7 @@ package com.github.cpthack.commons.ratelimiter.limiter;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.cpthack.commons.rdclient.config.RedisConfig;
 import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
 import com.github.cpthack.commons.ratelimiter.constants.RateLimiterConstants;
 
@@ -36,12 +37,12 @@ public class LimiterFactory {
 	/**
 	 * 单机限流实现 实例集合
 	 */
-	private static Map<String, Limiter> singleLimiterMap = new HashMap<String, Limiter>();
+	private static Map<String, Limiter>	singleLimiterMap	  = new HashMap<String, Limiter>();
 	
 	/**
 	 * 分布式限流实现 实例集合
 	 */
-	// private static Map<String, Limiter> distributedLimiterMap = new HashMap<String, Limiter>();
+	private static Map<String, Limiter>	distributedLimiterMap = new HashMap<String, Limiter>();
 	
 	public static Limiter single() {
 		return single(null);
@@ -49,7 +50,7 @@ public class LimiterFactory {
 	
 	public static Limiter single(RateLimiterConfig rateLimiterConfig) {
 		Limiter limiter = null;
-		if (null == rateLimiterConfig) {
+		if (null == rateLimiterConfig) {// 如果配置变量为空，则启用默认配置，默认配置需要依赖:rate-limiter.properties文件
 			String rateLimiterDefaultConfigName = RateLimiterConstants.RATE_LIMITER_CONFIG_FILE;
 			limiter = singleLimiterMap.get(rateLimiterDefaultConfigName);
 			if (null != limiter) {
@@ -69,4 +70,32 @@ public class LimiterFactory {
 		return limiter;
 	}
 	
+	public static Limiter distributed() {
+		return distributed(null);
+	}
+	
+	public static Limiter distributed(RateLimiterConfig rateLimiterConfig) {
+		return distributed(rateLimiterConfig, null);
+	}
+	
+	public static Limiter distributed(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
+		Limiter limiter = null;
+		if (null == rateLimiterConfig) {// 如果配置变量为空，则启用默认配置，默认配置需要依赖:rate-limiter.properties文件
+			String rateLimiterDefaultConfigName = RateLimiterConstants.RATE_LIMITER_CONFIG_FILE;
+			limiter = distributedLimiterMap.get(rateLimiterDefaultConfigName);
+			if (null != limiter) {
+				return limiter;
+			}
+			limiter = new DistributedLimiter();
+			distributedLimiterMap.put(rateLimiterDefaultConfigName, limiter);
+			return limiter;
+		}
+		
+		limiter = distributedLimiterMap.get(rateLimiterConfig.getConfigFile());
+		if (null != limiter)
+			return limiter;
+		limiter = new DistributedLimiter(rateLimiterConfig, redisConfig);
+		distributedLimiterMap.put(rateLimiterConfig.getConfigFile(), limiter);
+		return limiter;
+	}
 }
