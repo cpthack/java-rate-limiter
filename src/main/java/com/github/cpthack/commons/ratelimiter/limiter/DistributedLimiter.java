@@ -15,6 +15,16 @@
  */
 package com.github.cpthack.commons.ratelimiter.limiter;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.cpthack.commons.rdclient.config.RedisConfig;
+import com.cpthack.commons.rdclient.core.RedisClient;
+import com.cpthack.commons.rdclient.core.RedisClientFactory;
+import com.github.cpthack.commons.ratelimiter.bean.LimiterBean;
+import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
+
 /**
  * <b>DistributedLimiter.java</b></br>
  * 
@@ -28,22 +38,75 @@ package com.github.cpthack.commons.ratelimiter.limiter;
  */
 public class DistributedLimiter implements Limiter {
 	
+	@SuppressWarnings("rawtypes")
+	private static RedisClient				redisClient	   = null;
+	private static Map<String, LimiterBean>	limiterBeanMap = null;
+	
+	public DistributedLimiter() {
+		this(null, null);
+	}
+	
+	public DistributedLimiter(RateLimiterConfig rateLimiterConfig) {
+		this(rateLimiterConfig, null);
+	}
+	
+	public DistributedLimiter(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
+		if (null == rateLimiterConfig) {
+			rateLimiterConfig = new RateLimiterConfig();
+		}
+		initRateLimiterCache(rateLimiterConfig, redisConfig);
+	}
+	
+	private void initRateLimiterCache(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
+		if (null != redisClient)
+			return;
+		
+		redisClient = RedisClientFactory.getClient(redisConfig);
+		limiterBeanMap = new HashMap<String, LimiterBean>();
+		
+		List<LimiterBean> limiterList = rateLimiterConfig.getLimiterList();
+		for (LimiterBean limiterBean : limiterList) {
+			redisClient.setnx(limiterBean.getRouter(), "0", limiterBean.getTime());
+			limiterBeanMap.put(limiterBean.getRouter(), limiterBean);
+		}
+	}
+	
 	@Override
 	public boolean execute(String routerName) {
-		// TODO Auto-generated method stub
-		return false;
+		LimiterBean limiterBean = limiterBeanMap.get(routerName);
+		if (null == limiterBean)// 表示没有相关限流配置，直接返回成功
+			return true;
+		int limiterCount = limiterBean.getCount();
+		
+		/**
+		 * 每次根据路由地址强制设置缓存和过期时间，防止缓存过期后导致限流失效<br>
+		 * 倘若已经存在该路由的缓存KEY，不会设置新值
+		 */
+		redisClient.setnx(limiterBean.getRouter(), "0", limiterBean.getTime());
+		long currentCount = redisClient.incr(routerName);
+		
+		if (currentCount > limiterCount)// 如果超过限流植，则直接返回false
+			return false;
+		
+		return true;
 	}
 	
 	@Override
 	public boolean execute(String routerName, int limitCount) {
-		// TODO Auto-generated method stub
-		return false;
+		return execute(routerName, limitCount, Integer.MAX_VALUE);
 	}
 	
 	@Override
-	public boolean execute(String routerName, int limitCount, long time) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean execute(String routerName, int limitCount, int time) {
+		LimiterBean limiterBean = limiterBeanMap.get(routerName);
+		if (null == limiterBean) {
+			limiterBean = new LimiterBean();
+			limiterBean.setRouter(routerName);
+			limiterBean.setCount(limitCount);
+			limiterBean.setTime(time);
+			limiterBeanMap.put(routerName, limiterBean);
+		}
+		return execute(routerName);
 	}
 	
 }

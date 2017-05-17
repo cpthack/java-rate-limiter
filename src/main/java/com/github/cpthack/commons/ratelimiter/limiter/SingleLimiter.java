@@ -74,7 +74,7 @@ public class SingleLimiter implements Limiter {
 	}
 	
 	@Override
-	public boolean execute(String routerName, int limitCount, long time) {
+	public boolean execute(String routerName, int limitCount, int time) {
 		RateLimiter rateLimiter = rateLimiterMap.get(routerName);
 		if (null == rateLimiter) {
 			rateLimiter = RateLimiter.create(limitCount * 1.0 / time);

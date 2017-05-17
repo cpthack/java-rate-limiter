@@ -77,6 +77,6 @@ public interface Limiter {
 	 * @return boolean
 	 *
 	 */
-	boolean execute(String routerName, int limitCount, long time);
+	boolean execute(String routerName, int limitCount, int time);
 	
 }

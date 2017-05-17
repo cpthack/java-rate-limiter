@@ -49,7 +49,7 @@ public class LimiterBean {
 	/**
 	 * 限流时间，单位为 秒(s)
 	 */
-	public long getTime() {
+	public int getTime() {
 		return time;
 	}
 	

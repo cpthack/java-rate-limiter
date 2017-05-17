@@ -36,18 +36,18 @@ public class LimiterFactory {
 	/**
 	 * 单机限流实现 实例集合
 	 */
-	private static Map<String, Limiter>	singleLimiterMap	  = new HashMap<String, Limiter>();
+	private static Map<String, Limiter> singleLimiterMap = new HashMap<String, Limiter>();
+	
 	/**
 	 * 分布式限流实现 实例集合
 	 */
-//	private static Map<String, Limiter>	distributedLimiterMap = new HashMap<String, Limiter>();
+	// private static Map<String, Limiter> distributedLimiterMap = new HashMap<String, Limiter>();
 	
-	
-	public Limiter single(){
+	public static Limiter single() {
 		return single(null);
 	}
 	
-	public Limiter single(RateLimiterConfig rateLimiterConfig) {
+	public static Limiter single(RateLimiterConfig rateLimiterConfig) {
 		Limiter limiter = null;
 		if (null == rateLimiterConfig) {
 			String rateLimiterDefaultConfigName = RateLimiterConstants.RATE_LIMITER_CONFIG_FILE;
