@@ -73,7 +73,7 @@ public interface Limiter {
 	 * @param limitCount
 	 *            限流数量
 	 * @param time
-	 *            限流时间
+	 *            限流时间，单位是秒
 	 * @return boolean
 	 *
 	 */

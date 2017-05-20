@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.cpthack.commons.ratelimiter.bean.LimiterBean;
 import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
 import com.google.common.util.concurrent.RateLimiter;
@@ -35,6 +38,8 @@ import com.google.common.util.concurrent.RateLimiter;
  * @since JDK 1.7
  */
 public class SingleLimiter implements Limiter {
+	
+	private final static Logger		 logger	= LoggerFactory.getLogger(SingleLimiter.class);
 	
 	private Map<String, RateLimiter> rateLimiterMap;
 	
@@ -56,6 +61,7 @@ public class SingleLimiter implements Limiter {
 		rateLimiterMap = new HashMap<String, RateLimiter>();
 		for (LimiterBean limiterBean : limiterList) {
 			rateLimiterMap.put(limiterBean.getRouter(), RateLimiter.create(limiterBean.getCount() * 1.0 / limiterBean.getTime()));
+			logger.debug("单机限流-加载限流配置>>>router = [{}],time = [{}],count = [{}]", limiterBean.getRouter(), limiterBean.getTime(), limiterBean.getCount());
 		}
 	}
 	
@@ -79,6 +85,7 @@ public class SingleLimiter implements Limiter {
 		if (null == rateLimiter) {
 			rateLimiter = RateLimiter.create(limitCount * 1.0 / time);
 			rateLimiterMap.put(routerName, rateLimiter);
+			logger.debug("单机限流-动态限流配置>>>router = [{}],time = [{}],count = [{}]", routerName, time, limitCount);
 		}
 		return rateLimiter.tryAcquire();
 	}

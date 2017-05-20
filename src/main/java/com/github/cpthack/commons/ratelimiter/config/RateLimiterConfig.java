@@ -44,6 +44,9 @@ public class RateLimiterConfig extends AbstractConfig {
 	private final String LIMITER_TASK_TIME_NAME_PRE	  = "rate.limiter.limiter.time.";
 	private final String LIMITER_TASK_COUNT_NAME_PRE  = "rate.limiter.limiter.count.";
 	
+	public RateLimiterConfig() {
+		reloadConfig();
+	}
 	
 	@Override
 	public String getConfigFile() {
@@ -100,7 +103,6 @@ public class RateLimiterConfig extends AbstractConfig {
 			limiterRouter = getProperty(LIMITER_TASK_ROUTER_NAME_PRE + (i + 1));
 			if (null == limiterRouter)
 				continue;
-			
 			limiterBean = new LimiterBean();
 			limiterBean.setRouter(limiterRouter);
 			

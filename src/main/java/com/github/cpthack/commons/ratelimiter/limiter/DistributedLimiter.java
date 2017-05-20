@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.cpthack.commons.rdclient.config.RedisConfig;
 import com.cpthack.commons.rdclient.core.RedisClient;
 import com.cpthack.commons.rdclient.core.RedisClientFactory;
@@ -37,6 +40,8 @@ import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
  * @since JDK 1.7
  */
 public class DistributedLimiter implements Limiter {
+	
+	private final static Logger				logger		   = LoggerFactory.getLogger(DistributedLimiter.class);
 	
 	@SuppressWarnings("rawtypes")
 	private static RedisClient				redisClient	   = null;
@@ -68,6 +73,7 @@ public class DistributedLimiter implements Limiter {
 		for (LimiterBean limiterBean : limiterList) {
 			redisClient.setnx(limiterBean.getRouter(), "0", limiterBean.getTime());
 			limiterBeanMap.put(limiterBean.getRouter(), limiterBean);
+			logger.debug("分布式限流-加载限流配置>>>router = [{}],time = [{}],count = [{}]", limiterBean.getRouter(), limiterBean.getTime(), limiterBean.getCount());
 		}
 	}
 	
@@ -105,6 +111,7 @@ public class DistributedLimiter implements Limiter {
 			limiterBean.setCount(limitCount);
 			limiterBean.setTime(time);
 			limiterBeanMap.put(routerName, limiterBean);
+			logger.debug("分布式限流-动态限流配置>>>router = [{}],time = [{}],count = [{}]", routerName, time, limitCount);
 		}
 		return execute(routerName);
 	}
