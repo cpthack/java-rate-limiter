@@ -62,8 +62,22 @@ public class DistributedLimiter implements Limiter {
 		initRateLimiterCache(rateLimiterConfig, redisConfig);
 	}
 	
+	/**
+	 * 
+	 * <b>initRateLimiterCache</b> <br/>
+	 * <br/>
+	 * 
+	 * 初始化限流配置<br/>
+	 * 
+	 * @author cpthack cpt@jianzhimao.com
+	 * @param rateLimiterConfig
+	 *            限流配置类
+	 * @param redisConfig
+	 *            缓存配置类
+	 *
+	 */
 	private void initRateLimiterCache(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
-		if (null != redisClient)
+		if (null != redisClient)	// 当redisClient不为空，意味着限流配置已经初始化到缓存中
 			return;
 		
 		redisClient = RedisClientFactory.getClient(redisConfig);
@@ -91,7 +105,7 @@ public class DistributedLimiter implements Limiter {
 		redisClient.setnx(limiterBean.getRouter(), "0", limiterBean.getTime());
 		long currentCount = redisClient.incr(routerName);
 		
-		if (currentCount > limiterCount)// 如果超过限流植，则直接返回false
+		if (currentCount > limiterCount)// 如果超过限流值，则直接返回false
 			return false;
 		
 		return true;
@@ -105,6 +119,10 @@ public class DistributedLimiter implements Limiter {
 	@Override
 	public boolean execute(String routerName, int limitCount, int time) {
 		LimiterBean limiterBean = limiterBeanMap.get(routerName);
+		/**
+		 * 此处无需担心并发问题，当多个线程同时进行该模块代码，不影响限流配置。<br/>
+		 * limiterBeanMap对象中只会存在一条 [KEY = routerName] 的数据。
+		 */
 		if (null == limiterBean) {
 			limiterBean = new LimiterBean();
 			limiterBean.setRouter(routerName);
