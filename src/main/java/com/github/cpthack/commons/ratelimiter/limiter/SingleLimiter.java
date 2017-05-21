@@ -16,6 +16,7 @@
 package com.github.cpthack.commons.ratelimiter.limiter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -38,9 +39,9 @@ import com.google.common.util.concurrent.RateLimiter;
  */
 public class SingleLimiter implements Limiter {
 	
-	private final static Logger					   logger = LoggerFactory.getLogger(SingleLimiter.class);
+	private final static Logger		 logger	= LoggerFactory.getLogger(SingleLimiter.class);
 	
-	private ConcurrentHashMap<String, RateLimiter> rateLimiterMap;
+	private Map<String, RateLimiter> rateLimiterMap;
 	
 	public SingleLimiter() {
 		this(null);
@@ -53,7 +54,20 @@ public class SingleLimiter implements Limiter {
 		initRateLimiterMap(rateLimiterConfig);
 	}
 	
-	public void initRateLimiterMap(RateLimiterConfig rateLimiterConfig) {
+	/**
+	 * 
+	 * <b>initRateLimiterMap</b> <br/>
+	 * <br/>
+	 * 
+	 * 初始化限流配置<br/>
+	 * 初始化的限流配置在存储在Map中，支持后期动态添加。动态添加路由配置请参考 [method：dynamicAddRouter]
+	 * 
+	 * @author cpthack cpt@jianzhimao.com
+	 * @param rateLimiterConfig
+	 *            限流配置
+	 *
+	 */
+	protected void initRateLimiterMap(RateLimiterConfig rateLimiterConfig) {
 		if (null != rateLimiterMap)
 			return;
 		List<LimiterBean> limiterList = rateLimiterConfig.getLimiterList();
@@ -84,22 +98,40 @@ public class SingleLimiter implements Limiter {
 		if (null != rateLimiter) {
 			return rateLimiter.tryAcquire();// 如果限流配置已经存在，则直接进行锁许可证申请
 		}
-		/**
-		 * 当限流配置不存在的时候，需要进行动态限流配置。<br/>
-		 * 当多个线程同时进行动态配置时会发生并发问题，所以需要利用常量池特性[ routerName.intern() ]进行仅同一路由加锁
-		 */
+		
+		boolean isGetPermit = dynamicAddRouter(routerName, limitCount, time);
+		return isGetPermit;
+	}
+	
+	/**
+	 * <b>dynamicAddRouter</b> <br/>
+	 * <br/>
+	 * 当限流配置不存在的时候，需要进行动态限流配置。<br/>
+	 * 当多个线程同时进行动态配置时会发生并发问题，所以需要利用常量池特性[ routerName.intern() ]进行仅同一路由加锁。
+	 * 
+	 * @author cpthack cpt@jianzhimao.com
+	 * @param routerName
+	 *            路由名称
+	 * @param limitCount
+	 *            限流数量
+	 * @param time
+	 *            限流时间，单位是秒
+	 * @return boolean
+	 *
+	 */
+	public boolean dynamicAddRouter(String routerName, int limitCount, int time) {
 		synchronized (routerName.intern()) {
-			rateLimiter = rateLimiterMap.get(routerName);
+			RateLimiter rateLimiter = rateLimiterMap.get(routerName);
 			if (rateLimiter == null) {
 				rateLimiter = RateLimiter.create(limitCount * 1.0 / time);
 				rateLimiterMap.put(routerName, rateLimiter);
-				logger.debug("单机限流-动态限流配置>>>router = [{}],time = [{}],count = [{}]", routerName, time, limitCount);
+				logger.info("单机限流-动态限流配置>>>router = [{}],time = [{}],count = [{}]", routerName, time, limitCount);
 			}
 			else {
 				logger.warn("(重复添加限流配置)>>>router = [{}],time = [{}],count = [{}]", routerName, time, limitCount);
 			}
+			return rateLimiter.tryAcquire();
 		}
-		return rateLimiter.tryAcquire();
 	}
 	
 }
