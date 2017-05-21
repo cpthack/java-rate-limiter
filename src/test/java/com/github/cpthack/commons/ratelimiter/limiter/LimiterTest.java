@@ -44,9 +44,9 @@ public class LimiterTest {
 		RedisConfig redisConfig = new RateRedisConfig();
 		RateLimiterConfig rateLimiterConfig = new CustomRateLimiterConfig();
 		
-		// singleLimiter(rateLimiterConfig);// 实例化单机限流对象
+		singleLimiter(rateLimiterConfig);// 实例化单机限流对象
 		
-		DistributedLimiter(rateLimiterConfig, redisConfig); // 示例化分布式限流对象
+		// DistributedLimiter(rateLimiterConfig, redisConfig); // 示例化分布式限流对象
 		
 		simulateConcurrentThread(); // 模拟并发线程
 	}
@@ -54,7 +54,7 @@ public class LimiterTest {
 	private static void simulateConcurrentThread() {
 		DoThing dt = null;
 		Thread t = null;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 6; i++) {
 			dt = new DoThing("Thread " + i);
 			t = new Thread(dt);
 			t.start();
