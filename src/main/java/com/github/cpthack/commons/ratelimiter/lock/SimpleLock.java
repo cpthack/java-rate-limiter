@@ -16,9 +16,15 @@
 package com.github.cpthack.commons.ratelimiter.lock;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.cpthack.commons.ratelimiter.bean.LockBean;
+import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
 import com.github.cpthack.commons.ratelimiter.constants.RateLimiterConstants;
 
 /**
@@ -34,7 +40,32 @@ import com.github.cpthack.commons.ratelimiter.constants.RateLimiterConstants;
  */
 public class SimpleLock implements Lock {
 	
-	private static Map<String, Semaphore> lockMap = new HashMap<String, Semaphore>();
+	private final static Logger logger = LoggerFactory.getLogger(SimpleLock.class);
+	private static Map<String, Semaphore> lockMap = null;
+	
+	public SimpleLock() {
+		this(null);
+	}
+	
+	public SimpleLock(RateLimiterConfig rateLimiterConfig) {
+		if (null == rateLimiterConfig) {
+			rateLimiterConfig = new RateLimiterConfig();
+		}
+		initLockMap(rateLimiterConfig);
+	}
+	
+	protected void initLockMap(RateLimiterConfig rateLimiterConfig) {
+		if (null != lockMap)
+			return;
+		lockMap = new HashMap<String,Semaphore>();
+		List<LockBean> lockList = rateLimiterConfig.getLockList();
+		Semaphore semaphore = null;
+		for(LockBean lockBean : lockList){
+			semaphore = new Semaphore(lockBean.getPermits());
+			lockMap.put(lockBean.getUniqueKey(), semaphore);
+			logger.debug("单机并发锁-加载并发配置>>>uniqueKey = [{}],time = [{}],count = [{}]",lockBean.getUniqueKey(), lockBean.getExpireTime(), lockBean.getPermits());
+		}
+	}
 	
 	@Override
 	public boolean lock(String uniqueKey) {

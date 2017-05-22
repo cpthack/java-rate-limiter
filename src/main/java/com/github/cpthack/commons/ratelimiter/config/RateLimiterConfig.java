@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.github.cpthack.commons.ratelimiter.bean.LimiterBean;
+import com.github.cpthack.commons.ratelimiter.bean.LockBean;
 import com.github.cpthack.commons.ratelimiter.constants.RateLimiterConstants;
 
 /**
@@ -37,7 +38,9 @@ public class RateLimiterConfig extends AbstractConfig {
 	private final String FILE_NAME					  = RateLimiterConstants.RATE_LIMITER_CONFIG_FILE;
 	
 	private final String MAX_LOCK_TASK_COUNT_NAME	  = "rate.limiter.lock.task.count";
-	private final String LOCK_TASK_NAME_PRE			  = "rate.limiter.lock.router.";
+	private final String LOCK_TASK_ROURTE_NAME_PRE	  = "rate.limiter.lock.router.";
+	private final String LOCK_TASK_EXPIRE_TIME_PRE	  = "rate.limiter.lock.exprie.time.";
+	private final String LOCK_TASK_PERMITS_COUNT_PRE  = "rate.limiter.lock.permits.count.";
 	
 	private final String MAX_LIMITER_TASK_COUNT_NAME  = "rate.limiter.limiter.task.count";
 	private final String LIMITER_TASK_ROUTER_NAME_PRE = "rate.limiter.limiter.router.";
@@ -58,24 +61,37 @@ public class RateLimiterConfig extends AbstractConfig {
 	 * <b>getLockList</b> <br/>
 	 * <br/>
 	 * 
-	 * 从本地配置文件中加载并发配置列表，并组装成List<String>对象<br/>
+	 * 从本地配置文件中加载并发配置列表，并组装成List<LockBean>对象<br/>
 	 * 
 	 * @author cpthack cpt@jianzhimao.com
-	 * @return List<String>
+	 * @return List<LockBean>
 	 *
 	 */
-	public List<String> getLockList() {
+	public List<LockBean> getLockList() {
 		
 		int defaultLockListSize = getPropertyToInt(MAX_LOCK_TASK_COUNT_NAME, RateLimiterConstants.MAX_RATE_LIMITER_LOCK_LIMIT);
-		List<String> lockList = null;
-		String lockValue = null;
+		List<LockBean> lockList = null;
+		LockBean lockBean = null;
+		String lockUniqueKey = null;
+		int expireTime;
+		int permitsCount;
 		for (int i = 0; i < defaultLockListSize; i++) {
-			lockValue = getProperty(LOCK_TASK_NAME_PRE + (i + 1));
-			if (null == lockValue)
+			lockUniqueKey = getProperty(LOCK_TASK_ROURTE_NAME_PRE + (i + 1));
+			if (null == lockUniqueKey)
 				continue;
+			
+			lockBean = new LockBean();
+			lockBean.setUniqueKey(lockUniqueKey);
+			
+			expireTime = getPropertyToInt(LOCK_TASK_EXPIRE_TIME_PRE + (i + 1), RateLimiterConstants.LOCK_DEFAULT_EXPIRE_TIME);
+			lockBean.setExpireTime(expireTime);
+			
+			permitsCount = getPropertyToInt(LOCK_TASK_PERMITS_COUNT_PRE + (i + 1), RateLimiterConstants.LOCK_DEFAULT_PERMITS_NUM);
+			lockBean.setPermits(permitsCount);
+			
 			if (null == lockList)
-				lockList = new ArrayList<String>(defaultLockListSize);
-			lockList.add(lockValue);
+				lockList = new ArrayList<LockBean>(defaultLockListSize);
+			lockList.add(lockBean);
 		}
 		return lockList;
 	}
