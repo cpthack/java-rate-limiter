@@ -29,18 +29,27 @@ package com.github.cpthack.commons.ratelimiter.constants;
 public class RateLimiterConstants {
 	
 	/**
-	 * 默认的配置文件名称
+	 * 全局默认的配置文件名称
 	 */
 	public final static String RATE_LIMITER_CONFIG_FILE		  = "rate-limiter.properties";
 	
 	/**
-	 * 默认的限流任务总数
+	 * 限流控制-默认的限流任务总数
 	 */
 	public final static int	   MAX_RATE_LIMITER_LIMITER_LIMIT = 10;
 	
 	/**
-	 * 默认的并发控制任务总数
+	 * 限流控制-默认的并发控制任务总数
 	 */
 	public final static int	   MAX_RATE_LIMITER_LOCK_LIMIT	  = 10;
 	
+	/**
+	 * 并发锁-默认的许可数量
+	 */
+	public final static int	   LOCK_DEFAULT_PERMITS_NUM		  = 1;
+	
+	/**
+	 * 并发锁-默认的锁失效时间，单位秒
+	 */
+	public final static int	   LOCK_DEFAULT_EXPIRE_TIME		  = 3;
 }
