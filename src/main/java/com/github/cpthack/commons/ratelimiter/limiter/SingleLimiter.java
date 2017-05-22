@@ -39,9 +39,9 @@ import com.google.common.util.concurrent.RateLimiter;
  */
 public class SingleLimiter implements Limiter {
 	
-	private final static Logger		 logger	= LoggerFactory.getLogger(SingleLimiter.class);
+	private final static Logger				logger		   = LoggerFactory.getLogger(SingleLimiter.class);
 	
-	private Map<String, RateLimiter> rateLimiterMap;
+	private static Map<String, RateLimiter>	rateLimiterMap = null;
 	
 	public SingleLimiter() {
 		this(null);
