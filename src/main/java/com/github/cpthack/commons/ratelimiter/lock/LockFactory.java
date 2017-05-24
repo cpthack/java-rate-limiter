@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.cpthack.commons.ratelimiter.limiter;
+package com.github.cpthack.commons.ratelimiter.lock;
 
 import com.github.cpthack.commons.ratelimiter.base.AbstractBaseFactory;
 
 /**
- * <b>LimiterFactory.java</b></br>
+ * <b>LockFactory.java</b></br>
  * 
  * <pre>
- * 限流工厂类
+ * 并发锁工厂类
  * </pre>
  *
  * @author cpthack cpt@jianzhimao.com
- * @date May 17, 2017 12:18:47 AM
+ * @date May 24, 2017 1:07:13 PM
  * @since JDK 1.7
  */
-public class LimiterFactory extends AbstractBaseFactory<Limiter> {
+public class LockFactory extends AbstractBaseFactory<Lock> {
+	private final static LockFactory factory = new LockFactory();
 	
-	private final static LimiterFactory factory = new LimiterFactory();
-	
-	public LimiterFactory() {
-		super(SingleLimiter.class, DistributedLimiter.class);
+	public LockFactory() {
+		super(SingleLock.class, DistributedLock.class);
 	}
 	
-	public static LimiterFactory getInstance() {
+	public static LockFactory getInstance() {
 		return factory;
 	}
+	
 }

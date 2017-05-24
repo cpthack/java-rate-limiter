@@ -62,11 +62,11 @@ public class LimiterTest {
 	}
 	
 	private static void singleLimiter(RateLimiterConfig rateLimiterConfig) {
-		limiter = LimiterFactory.single(rateLimiterConfig);
+		limiter = LimiterFactory.getInstance().single(rateLimiterConfig);
 	}
 	
 	private static void DistributedLimiter(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
-		limiter = LimiterFactory.distributed(rateLimiterConfig, redisConfig);
+		limiter = LimiterFactory.getInstance().distributed(rateLimiterConfig, redisConfig);
 	}
 	
 	/**

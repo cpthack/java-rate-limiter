@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cpthack.commons.rdclient.config.RedisConfig;
-import com.cpthack.commons.rdclient.core.RedisClientFactory;
 import com.github.cpthack.commons.ratelimiter.config.CustomRateLimiterConfig;
 import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
 import com.github.cpthack.commons.ratelimiter.config.RateRedisConfig;
@@ -46,11 +45,23 @@ public class LockTest {
 	
 	public static void main(String[] args) {
 		RateLimiterConfig rateLimiterConfig = new CustomRateLimiterConfig();
-		// lock = new SimpleLock(rateLimiterConfig);
+		// lock = getSingleLock(rateLimiterConfig);
 		RedisConfig redisConfig = new RateRedisConfig();
-		lock = new DistributedLock(rateLimiterConfig, redisConfig);
-//		RedisClientFactory.getClient(redisConfig).set("/lock1", "10");// 模拟releaseLock没有执行导致的缓存中存在较多正数值得锁KEY
-		simulateConcurrentThread(40); // 模拟并发线程
+		
+		lock = getDistributedLock(rateLimiterConfig, redisConfig);
+		
+		// RedisClientFactory.getClient(redisConfig).set("/lock1", "10");//
+		// 模拟releaseLock没有执行导致的缓存中存在较多正数值得锁KEY
+		
+		simulateConcurrentThread(80); // 模拟并发线程
+	}
+	
+	private static Lock getSingleLock(RateLimiterConfig rateLimiterConfig) {
+		return LockFactory.getInstance().single(rateLimiterConfig);
+	}
+	
+	private static Lock getDistributedLock(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
+		return LockFactory.getInstance().distributed(rateLimiterConfig, redisConfig);
 	}
 	
 	private static void simulateConcurrentThread(int threadNum) {
@@ -60,7 +71,7 @@ public class LockTest {
 			dt = new DoThing("Thread " + i);
 			t = new Thread(dt);
 			try {
-				Thread.sleep(200);
+				Thread.sleep(100);
 			}
 			catch (InterruptedException e) {
 				e.printStackTrace();

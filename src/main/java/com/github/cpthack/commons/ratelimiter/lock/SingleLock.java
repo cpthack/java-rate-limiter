@@ -28,7 +28,7 @@ import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
 import com.github.cpthack.commons.ratelimiter.constants.RateLimiterConstants;
 
 /**
- * <b>SimpleLock.java</b></br>
+ * <b>SingleLock.java</b></br>
  * 
  * <pre>
  * 单机版并发锁 实现类
@@ -38,16 +38,16 @@ import com.github.cpthack.commons.ratelimiter.constants.RateLimiterConstants;
  * @date May 22, 2017 1:31:31 AM
  * @since JDK 1.7
  */
-public class SimpleLock implements Lock {
+public class SingleLock implements Lock {
 	
-	private final static Logger logger = LoggerFactory.getLogger(SimpleLock.class);
+	private final static Logger logger = LoggerFactory.getLogger(SingleLock.class);
 	private static Map<String, Semaphore> lockMap = null;
 	
-	public SimpleLock() {
+	public SingleLock() {
 		this(null);
 	}
 	
-	public SimpleLock(RateLimiterConfig rateLimiterConfig) {
+	public SingleLock(RateLimiterConfig rateLimiterConfig) {
 		if (null == rateLimiterConfig) {
 			rateLimiterConfig = new RateLimiterConfig();
 		}
