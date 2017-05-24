@@ -18,8 +18,11 @@ package com.github.cpthack.commons.ratelimiter.lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cpthack.commons.rdclient.config.RedisConfig;
+import com.cpthack.commons.rdclient.core.RedisClientFactory;
 import com.github.cpthack.commons.ratelimiter.config.CustomRateLimiterConfig;
 import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
+import com.github.cpthack.commons.ratelimiter.config.RateRedisConfig;
 
 /**
  * <b>LockTest.java</b></br>
@@ -34,22 +37,34 @@ import com.github.cpthack.commons.ratelimiter.config.RateLimiterConfig;
  */
 public class LockTest {
 	
-	private final static Logger	logger = LoggerFactory.getLogger(LockTest.class);
+	private final static Logger	logger	   = LoggerFactory.getLogger(LockTest.class);
 	
-	private static Lock			lock   = null;
+	private static String		UNIQUE_KEY = "/lock1";
+	private static Lock			lock	   = null;
+	
+	private volatile static int	successNum = 0;
 	
 	public static void main(String[] args) {
 		RateLimiterConfig rateLimiterConfig = new CustomRateLimiterConfig();
-		lock = new SimpleLock(rateLimiterConfig);
-		simulateConcurrentThread(); // 模拟并发线程
+		// lock = new SimpleLock(rateLimiterConfig);
+		RedisConfig redisConfig = new RateRedisConfig();
+		lock = new DistributedLock(rateLimiterConfig, redisConfig);
+//		RedisClientFactory.getClient(redisConfig).set("/lock1", "10");// 模拟releaseLock没有执行导致的缓存中存在较多正数值得锁KEY
+		simulateConcurrentThread(40); // 模拟并发线程
 	}
 	
-	private static void simulateConcurrentThread() {
+	private static void simulateConcurrentThread(int threadNum) {
 		DoThing dt = null;
 		Thread t = null;
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < threadNum; i++) {
 			dt = new DoThing("Thread " + i);
 			t = new Thread(dt);
+			try {
+				Thread.sleep(200);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}// 模拟程序执行时间
 			t.start();
 		}
 	}
@@ -68,10 +83,16 @@ public class LockTest {
 		@Override
 		public void run() {
 			try {
-				if (lock.lock("/lock1")) {// 进行并发控制
+				if (lock.lock(UNIQUE_KEY)) {// 进行并发控制
+					
 					logger.info("Thread Name is [{}] 成功获得锁，正在处理中...", name);
-					Thread.currentThread().sleep(2000);
-					lock.releaseLock("/test-lock1");
+					
+					successNum++;
+					logger.info("当前成功并发数successNum的值为 [" + successNum + "]");
+					Thread.currentThread().sleep(2000);// 模拟程序执行时间
+					
+					successNum--;
+					lock.releaseLock(UNIQUE_KEY);
 				}
 				else {
 					logger.warn("Thread Name is [{}] 尝试获得锁失败", name);

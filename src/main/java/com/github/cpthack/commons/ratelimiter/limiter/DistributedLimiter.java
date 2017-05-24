@@ -59,12 +59,12 @@ public class DistributedLimiter implements Limiter {
 		if (null == rateLimiterConfig) {
 			rateLimiterConfig = new RateLimiterConfig();
 		}
-		initRateLimiterCache(rateLimiterConfig, redisConfig);
+		initLimiterConfig(rateLimiterConfig, redisConfig);
 	}
 	
 	/**
 	 * 
-	 * <b>initRateLimiterCache</b> <br/>
+	 * <b>initLimiterConfig</b> <br/>
 	 * <br/>
 	 * 
 	 * 初始化限流配置<br/>
@@ -76,7 +76,7 @@ public class DistributedLimiter implements Limiter {
 	 *            缓存配置类
 	 *
 	 */
-	private void initRateLimiterCache(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
+	protected void initLimiterConfig(RateLimiterConfig rateLimiterConfig, RedisConfig redisConfig) {
 		if (null != redisClient)	// 当redisClient不为空，意味着限流配置已经初始化到缓存中
 			return;
 		
